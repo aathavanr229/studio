@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { 
@@ -17,7 +16,8 @@ import {
   ShieldAlert,
   Clock,
   Navigation,
-  Loader2
+  Loader2,
+  CheckCircle2
 } from "lucide-react";
 import { analyzeEmergency, type EmergencyOutput } from "@/ai/flows/emergency-analyzer";
 import { toast } from "@/hooks/use-toast";
@@ -25,51 +25,71 @@ import { cn } from "@/lib/utils";
 
 export default function EmergencyPage() {
   const [isDispatching, setIsDispatching] = useState(false);
+  const [hasArrived, setHasArrived] = useState(false);
   const [eta, setEta] = useState(12);
   const [progress, setProgress] = useState(0);
   const [description, setDescription] = useState("");
   const [aiResult, setAiResult] = useState<EmergencyOutput | null>(null);
   const [isLoadingAi, setIsLoadingAi] = useState(false);
+  const [currentStreet, setCurrentStreet] = useState("Stationary at Hub");
+
+  const streets = [
+    "Leaving MG Road Hub",
+    "Passing Avinashi Road Junction",
+    "Crossing Brookefields Area",
+    "Near Gandhipuram Signal",
+    "Turning onto Race Course Road",
+    "Entering your immediate vicinity",
+    "Ambulance has Arrived"
+  ];
 
   // Simulated ambulance tracking
   useEffect(() => {
-    if (isDispatching && progress < 100) {
+    if (isDispatching && !hasArrived) {
       const timer = setInterval(() => {
         setProgress(prev => {
-          if (prev >= 100) return 100;
-          return prev + 1;
+          const next = prev + 1;
+          if (next >= 100) {
+            setHasArrived(true);
+            return 100;
+          }
+          return next;
         });
-        setEta(prev => Math.max(1, Math.ceil(12 - (progress / 8.33))));
-      }, 1000);
+
+        setEta(prev => {
+          const newEta = Math.max(0, 12 - Math.floor(progress / 8.33));
+          return newEta;
+        });
+
+        // Update street location based on progress
+        const streetIdx = Math.floor((progress / 100) * (streets.length - 1));
+        setCurrentStreet(streets[streetIdx]);
+
+      }, 800); // Accelerated simulation for demo
       return () => clearInterval(timer);
     }
-  }, [isDispatching, progress]);
+  }, [isDispatching, progress, hasArrived]);
+
+  useEffect(() => {
+    if (hasArrived) {
+      toast({
+        title: "AMBULANCE ARRIVED",
+        description: "Unit #MG-402 is at your location now.",
+        variant: "default",
+      });
+    }
+  }, [hasArrived]);
 
   const handlePanicButton = () => {
     setIsDispatching(true);
+    setHasArrived(false);
+    setProgress(0);
+    setEta(12);
     toast({
       title: "AMBULANCE DISPATCHED",
-      description: "Emergency services have been notified of your location. Stay calm.",
+      description: "Emergency services have been notified. Unit #MG-402 is en route.",
       variant: "destructive",
     });
-  };
-
-  const handleAiTriage = async () => {
-    if (!description.trim()) return;
-    setIsLoadingAi(true);
-    try {
-      const result = await analyzeEmergency({ description });
-      setAiResult(result);
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "AI Analysis Failed",
-        description: "Please proceed with standard first aid and wait for the ambulance.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoadingAi(false);
-    }
   };
 
   return (
@@ -90,9 +110,15 @@ export default function EmergencyPage() {
           >
             PANIC: DISPATCH NOW
           </Button>
+        ) : hasArrived ? (
+          <Badge className="px-8 py-4 text-xl bg-green-600 text-white border-none flex gap-2 items-center">
+            <CheckCircle2 className="h-6 w-6" />
+            ARRIVED AT LOCATION
+          </Badge>
         ) : (
-          <Badge variant="destructive" className="px-6 py-3 text-lg animate-pulse">
-            AMBULANCE EN ROUTE
+          <Badge variant="destructive" className="px-8 py-4 text-xl animate-pulse flex gap-2 items-center">
+            <Truck className="h-6 w-6" />
+            EN ROUTE (ETA: {eta}m)
           </Badge>
         )}
       </div>
@@ -100,49 +126,78 @@ export default function EmergencyPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Tracking & Status */}
         <div className="lg:col-span-7 space-y-8">
-          <Card className="glass border-accent/20 overflow-hidden relative">
+          <Card className={cn(
+            "glass border-accent/20 overflow-hidden relative transition-all duration-500",
+            hasArrived && "border-green-500/50 bg-green-500/5"
+          )}>
             <div className="absolute top-0 right-0 p-4">
-              <Badge className="bg-accent/20 text-accent border-accent/30">Priority 1</Badge>
+              <Badge className={cn(
+                "border-accent/30",
+                hasArrived ? "bg-green-500 text-white" : "bg-accent/20 text-accent"
+              )}>
+                {hasArrived ? "MISSION COMPLETE" : "PRIORITY 1"}
+              </Badge>
             </div>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Navigation className="h-5 w-5 text-accent" />
-                Live Tracker
+                Live Tracker: Unit #MG-402
               </CardTitle>
-              <CardDescription>Advanced GPS Tracking for Ambulance #MG-402</CardDescription>
+              <CardDescription>GPS Satellite Link Active • Coimbatore Sector</CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
               {/* Simulated Map / Route */}
-              <div className="h-64 rounded-2xl bg-muted/30 border border-primary/10 relative overflow-hidden flex items-center justify-center">
-                 <div className="absolute inset-0 opacity-20 bg-[url('https://picsum.photos/seed/map/800/400')] bg-cover" />
-                 <div className="relative z-10 text-center">
+              <div className="h-64 rounded-3xl bg-muted/30 border border-primary/10 relative overflow-hidden flex items-center justify-center group">
+                 <div className="absolute inset-0 opacity-40 bg-[url('https://picsum.photos/seed/cbe-map/1200/800')] bg-cover grayscale group-hover:grayscale-0 transition-all duration-1000" />
+                 <div className="relative z-10 text-center glass p-6 rounded-2xl border-white/10">
                     <div className="flex justify-center mb-4">
                       <div className="relative">
-                        <div className="h-12 w-12 rounded-full bg-accent/20 flex items-center justify-center animate-ping absolute inset-0" />
-                        <div className="h-12 w-12 rounded-full bg-accent flex items-center justify-center relative">
-                          <Truck className="h-6 w-6 text-white" />
+                        {!hasArrived && (
+                          <div className="h-16 w-16 rounded-full bg-accent/20 flex items-center justify-center animate-ping absolute inset-0" />
+                        )}
+                        <div className={cn(
+                          "h-16 w-16 rounded-full flex items-center justify-center relative transition-colors duration-500",
+                          hasArrived ? "bg-green-600" : "bg-accent"
+                        )}>
+                          {hasArrived ? <CheckCircle2 className="h-8 w-8 text-white" /> : <Truck className="h-8 w-8 text-white" />}
                         </div>
                       </div>
                     </div>
-                    <p className="text-sm font-bold text-accent">AMBULANCE #MG-402</p>
-                    <p className="text-xs text-muted-foreground uppercase tracking-widest mt-1">Crossing Avinashi Road</p>
+                    <p className={cn("text-lg font-black uppercase tracking-tight", hasArrived ? "text-green-500" : "text-accent")}>
+                      {hasArrived ? "Ambulance Arrived" : "Ambulance En Route"}
+                    </p>
+                    <p className="text-sm text-muted-foreground font-medium mt-1">
+                      {currentStreet}
+                    </p>
                  </div>
               </div>
 
               <div className="space-y-4">
                 <div className="flex justify-between items-end">
                   <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground uppercase">Estimated Arrival</p>
-                    <p className="text-4xl font-black text-accent">{eta} MINS</p>
+                    <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest">Estimated Arrival</p>
+                    <p className={cn(
+                      "text-5xl font-black transition-colors",
+                      hasArrived ? "text-green-500" : "text-accent"
+                    )}>
+                      {hasArrived ? "0" : eta} <span className="text-xl">MINS</span>
+                    </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-muted-foreground uppercase">Distance</p>
-                    <p className="text-xl font-bold">2.4 KM</p>
+                    <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest">Current Distance</p>
+                    <p className="text-2xl font-bold">
+                      {hasArrived ? "0.0" : (2.4 * (1 - progress/100)).toFixed(1)} KM
+                    </p>
                   </div>
                 </div>
-                <Progress value={progress} className="h-3 bg-muted/50">
-                  <div className="h-full bg-accent transition-all duration-1000" style={{ width: `${progress}%` }} />
-                </Progress>
+                <div className="relative pt-2">
+                  <Progress value={progress} className="h-4 bg-muted/50 rounded-full overflow-hidden">
+                    <div className={cn(
+                      "h-full transition-all duration-1000",
+                      hasArrived ? "bg-green-600" : "bg-accent"
+                    )} style={{ width: `${progress}%` }} />
+                  </Progress>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -158,11 +213,11 @@ export default function EmergencyPage() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center p-3 rounded-xl bg-background/50 border border-primary/5">
                   <span className="text-sm">Paramedic Unit</span>
-                  <Button variant="link" className="text-primary text-xs">+91 999 444 000</Button>
+                  <Button variant="link" className="text-primary text-xs font-bold">+91 999 444 000</Button>
                 </div>
                 <div className="flex justify-between items-center p-3 rounded-xl bg-background/50 border border-primary/5">
                   <span className="text-sm">Police Assistance</span>
-                  <Button variant="link" className="text-primary text-xs">Dial 100</Button>
+                  <Button variant="link" className="text-primary text-xs font-bold">Dial 100</Button>
                 </div>
               </CardContent>
             </Card>
@@ -175,13 +230,13 @@ export default function EmergencyPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium">KG Hospital</span>
-                  <Badge variant="outline" className="text-[10px] h-5">0.8 KM</Badge>
+                <div className="flex items-center justify-between text-xs p-2 rounded-lg hover:bg-white/5 transition-colors">
+                  <span className="font-bold">KG Hospital</span>
+                  <Badge variant="outline" className="text-[10px] h-5 border-primary/20">0.8 KM</Badge>
                 </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium">KMCH</span>
-                  <Badge variant="outline" className="text-[10px] h-5">3.1 KM</Badge>
+                <div className="flex items-center justify-between text-xs p-2 rounded-lg hover:bg-white/5 transition-colors">
+                  <span className="font-bold">KMCH (Avinashi Rd)</span>
+                  <Badge variant="outline" className="text-[10px] h-5 border-primary/20">3.1 KM</Badge>
                 </div>
               </CardContent>
             </Card>
@@ -196,12 +251,12 @@ export default function EmergencyPage() {
                 <ShieldAlert className="h-5 w-5 text-primary" />
                 AI First Aid Assistant
               </CardTitle>
-              <CardDescription>Describe the accident for immediate instructions.</CardDescription>
+              <CardDescription>Get immediate life-saving instructions while waiting.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <textarea
-                  className="w-full h-32 rounded-xl bg-background/50 border border-primary/20 p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full h-32 rounded-xl bg-background/50 border border-primary/20 p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                   placeholder="Describe the situation: e.g., Car accident, victim has leg injury, unconscious but breathing..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -209,18 +264,18 @@ export default function EmergencyPage() {
                 <Button 
                   onClick={handleAiTriage}
                   disabled={isLoadingAi || !description.trim()}
-                  className="w-full gold-gradient text-black font-bold h-12"
+                  className="w-full gold-gradient text-black font-bold h-12 shadow-lg"
                 >
-                  {isLoadingAi ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : "Analyze & Get Advice"}
+                  {isLoadingAi ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : "Analyze Situation"}
                 </Button>
               </div>
 
               {aiResult && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Triage Level</span>
+                  <div className="flex items-center justify-between border-b border-primary/10 pb-4">
+                    <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Triage Level</span>
                     <Badge className={cn(
-                      "font-bold",
+                      "font-black px-4 py-1",
                       aiResult.triageLevel === 'CRITICAL' ? "bg-accent text-white" : "bg-primary text-black"
                     )}>
                       {aiResult.triageLevel}
@@ -232,21 +287,24 @@ export default function EmergencyPage() {
                       <Clock className="h-4 w-4" />
                       Immediate Actions:
                     </p>
-                    <ul className="space-y-2">
+                    <ul className="space-y-3">
                       {aiResult.immediateActions.map((action, i) => (
-                        <li key={i} className="text-sm flex gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
-                          <span className="h-5 w-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs shrink-0 font-bold">{i+1}</span>
-                          {action}
+                        <li key={i} className="text-sm flex gap-3 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                          <span className="h-6 w-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs shrink-0 font-black">{i+1}</span>
+                          <span className="leading-relaxed">{action}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
 
                   <div className="p-4 rounded-xl bg-accent/10 border border-accent/20">
-                    <p className="text-xs font-bold text-accent uppercase mb-2">Watch For Warning Signs:</p>
+                    <p className="text-xs font-black text-accent uppercase mb-3 flex items-center gap-2">
+                      <AlertCircle className="h-3 w-3" />
+                      Critical Warning Signs:
+                    </p>
                     <div className="flex flex-wrap gap-2">
                       {aiResult.warningSigns.map((sign, i) => (
-                        <Badge key={i} variant="secondary" className="bg-accent/5 text-[10px] text-accent-foreground border-accent/10">
+                        <Badge key={i} variant="secondary" className="bg-accent/10 text-[10px] text-accent font-bold border-accent/20">
                           {sign}
                         </Badge>
                       ))}
@@ -261,7 +319,7 @@ export default function EmergencyPage() {
             <CardHeader className="bg-primary/5 border-b border-primary/10">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Activity className="h-5 w-5 text-primary" />
-                Vitals Monitoring
+                Victim Vitals
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
@@ -270,12 +328,12 @@ export default function EmergencyPage() {
                     <Activity className="h-6 w-6 text-primary animate-pulse" />
                  </div>
                  <div>
-                    <p className="text-sm font-bold">Waiting for Connection</p>
-                    <p className="text-xs text-muted-foreground">Pair with victim's MediGold wearable</p>
+                    <p className="text-sm font-bold">Ready to Connect</p>
+                    <p className="text-xs text-muted-foreground">Scanning for MediGold ID bands...</p>
                  </div>
               </div>
-              <Button variant="outline" className="w-full border-primary/20 hover:bg-primary/5 text-xs h-10">
-                Sync Patient ID Card
+              <Button variant="outline" className="w-full border-primary/20 hover:bg-primary/5 text-xs h-10 font-bold">
+                Manual Patient Entry
                 <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
             </CardContent>
