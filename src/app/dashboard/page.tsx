@@ -13,9 +13,17 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { HealthInsights } from "@/components/dashboard/HealthInsights";
 
 export default function Dashboard() {
   const doctors = PlaceHolderImages.filter(img => img.id.startsWith('doctor-'));
+  
+  // Simulated current health data
+  const currentMetrics = {
+    heartRate: "72 BPM",
+    bloodPressure: "120/80",
+    weight: "165 lbs"
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -52,7 +60,7 @@ export default function Dashboard() {
                     <div className="flex items-center gap-4">
                       <div className="h-12 w-12 rounded-full overflow-hidden border border-primary/20">
                         <Image 
-                          src={doctors[idx]?.imageUrl} 
+                          src={doctors[idx]?.imageUrl || "https://picsum.photos/seed/doc/100/100"} 
                           alt={apt.doctor} 
                           width={48} 
                           height={48} 
@@ -87,15 +95,15 @@ export default function Dashboard() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center p-3 rounded-lg bg-background/50 border border-primary/5">
                   <span className="text-sm text-muted-foreground">Heart Rate</span>
-                  <span className="font-bold text-primary">72 BPM</span>
+                  <span className="font-bold text-primary">{currentMetrics.heartRate}</span>
                 </div>
                 <div className="flex justify-between items-center p-3 rounded-lg bg-background/50 border border-primary/5">
                   <span className="text-sm text-muted-foreground">Blood Pressure</span>
-                  <span className="font-bold text-primary">120/80</span>
+                  <span className="font-bold text-primary">{currentMetrics.bloodPressure}</span>
                 </div>
                 <div className="flex justify-between items-center p-3 rounded-lg bg-background/50 border border-primary/5">
                   <span className="text-sm text-muted-foreground">Weight</span>
-                  <span className="font-bold text-primary">165 lbs</span>
+                  <span className="font-bold text-primary">{currentMetrics.weight}</span>
                 </div>
               </CardContent>
             </Card>
@@ -129,6 +137,8 @@ export default function Dashboard() {
 
         {/* Sidebar */}
         <div className="space-y-8">
+          <HealthInsights metrics={currentMetrics} />
+
           <Card className="glass border-primary/10">
             <CardHeader>
               <CardTitle className="text-lg">Specialists for You</CardTitle>
