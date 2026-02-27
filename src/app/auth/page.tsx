@@ -14,6 +14,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Stethoscope, Github, Mail, ShieldCheck, Loader2, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth, useFirestore } from "@/firebase";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -31,6 +34,8 @@ export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+  const auth = useAuth();
+  const db = useFirestore();
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -44,41 +49,67 @@ export default function AuthPage() {
 
   async function onLogin(values: z.infer<typeof loginSchema>) {
     setIsLoading(true);
-    // Simulate authentication process
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    toast({
-      title: "Authentication Successful",
-      description: `Welcome back, ${values.email.split('@')[0]}. Accessing your premium dashboard.`,
-    });
-    
-    setIsLoading(false);
-    router.push("/dashboard");
+    try {
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+      toast({
+        title: "Welcome Back",
+        description: "Accessing your premium MediGold dashboard.",
+      });
+      router.push("/dashboard");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Failed",
+        description: error.message || "Please check your credentials.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   async function onRegister(values: z.infer<typeof registerSchema>) {
     setIsLoading(true);
-    // Simulate secure account creation
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    
-    toast({
-      title: "MediGold Membership Confirmed",
-      description: "Your premium health profile has been successfully created.",
-    });
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const user = userCredential.user;
 
-    setIsLoading(false);
-    router.push("/dashboard");
+      await updateProfile(user, {
+        displayName: `${values.firstName} ${values.lastName}`
+      });
+
+      setDoc(doc(db, "users", user.uid), {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
+        membershipLevel: "Standard",
+        createdAt: serverTimestamp(),
+      });
+
+      toast({
+        title: "Membership Confirmed",
+        description: "Your premium health profile has been successfully created.",
+      });
+      router.push("/dashboard");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Registration Failed",
+        description: error.message || "Could not create your account.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
           <div className="inline-flex p-4 rounded-3xl bg-primary/10 border border-primary/20 mb-4 gold-glow">
             <Stethoscope className="h-10 w-10 text-primary" />
           </div>
           <h1 className="text-4xl font-bold gold-text font-headline">MediGold Private</h1>
-          <p className="text-muted-foreground">The world's most advanced telemedicine portal</p>
+          <p className="text-muted-foreground text-sm uppercase tracking-widest font-bold">Secure Patient Portal</p>
         </div>
 
         <Tabs defaultValue="login" className="w-full">
@@ -137,23 +168,11 @@ export default function AuthPage() {
                 </Form>
               </CardContent>
               <CardFooter className="flex flex-col gap-4 border-t border-primary/5 pt-6">
-                <div className="relative w-full">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-primary/10" />
-                  </div>
-                  <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-widest">
-                    <span className="bg-card px-3 text-muted-foreground">Secure Integration</span>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4 w-full">
-                  <Button variant="outline" className="border-primary/10 hover:bg-primary/5">
-                    <Mail className="mr-2 h-4 w-4" />
-                    Google
-                  </Button>
-                  <Button variant="outline" className="border-primary/10 hover:bg-primary/5">
-                    <Github className="mr-2 h-4 w-4" />
-                    GitHub
-                  </Button>
+                <div className="relative w-full text-center">
+                   <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest flex items-center justify-center gap-2">
+                     <ShieldCheck className="h-3 w-3 text-primary" />
+                     HIPAA Compliant Session
+                   </p>
                 </div>
               </CardFooter>
             </Card>
@@ -233,12 +252,6 @@ export default function AuthPage() {
                   </form>
                 </Form>
               </CardContent>
-              <CardFooter className="flex-col gap-4 border-t border-primary/5 pt-6 text-center text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-primary" />
-                  HIPAA Compliant • 256-bit AES Encryption
-                </div>
-              </CardFooter>
             </Card>
           </TabsContent>
         </Tabs>

@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -11,8 +12,13 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { toast } from "@/hooks/use-toast";
 
 export default function AppointmentsPage() {
-  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [date, setDate] = useState<Date | undefined>(undefined);
   const doctors = PlaceHolderImages.filter(img => img.id.startsWith('doctor-'));
+
+  // Fix hydration mismatch for initial date
+  useEffect(() => {
+    setDate(new Date());
+  }, []);
 
   const handleBook = (doctorName: string) => {
     toast({
@@ -29,7 +35,6 @@ export default function AppointmentsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        {/* Left: Doctor List */}
         <div className="lg:col-span-8 space-y-6">
           {doctors.map((doc, idx) => (
             <Card key={idx} className="glass border-primary/10 overflow-hidden group hover:border-primary/40 transition-all duration-300">
@@ -97,7 +102,6 @@ export default function AppointmentsPage() {
           ))}
         </div>
 
-        {/* Right: Sticky Calendar/Filter */}
         <div className="lg:col-span-4">
           <div className="sticky top-32 space-y-6">
             <Card className="glass border-primary/10">
@@ -112,30 +116,6 @@ export default function AppointmentsPage() {
                   onSelect={setDate}
                   className="rounded-md border-none"
                 />
-              </CardContent>
-            </Card>
-
-            <Card className="glass border-primary/10">
-              <CardHeader>
-                <CardTitle className="text-lg">Filter Specialists</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground uppercase">Specialization</p>
-                  <div className="flex flex-wrap gap-2">
-                    {["Cardiology", "Neurology", "Dermatology", "General"].map(cat => (
-                      <Badge key={cat} variant="secondary" className="cursor-pointer hover:bg-primary/20 hover:text-primary">{cat}</Badge>
-                    ))}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground uppercase">Availability</p>
-                  <div className="flex flex-wrap gap-2">
-                    {["Morning", "Afternoon", "Evening"].map(time => (
-                      <Badge key={time} variant="outline" className="cursor-pointer border-primary/20">{time}</Badge>
-                    ))}
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </div>

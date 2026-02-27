@@ -1,18 +1,16 @@
+
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { 
   Siren, 
-  MapPin, 
   Truck, 
   PhoneCall, 
   AlertCircle, 
-  Activity,
-  ChevronRight,
   ShieldAlert,
   Clock,
   Navigation,
@@ -22,6 +20,16 @@ import {
 import { analyzeEmergency, type EmergencyOutput } from "@/ai/flows/emergency-analyzer";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+
+const STREETS = [
+  "Leaving MG Road Hub",
+  "Passing Avinashi Road Junction",
+  "Crossing Brookefields Area",
+  "Near Gandhipuram Signal",
+  "Turning onto Race Course Road",
+  "Entering your immediate vicinity",
+  "Ambulance has Arrived"
+];
 
 export default function EmergencyPage() {
   const [isDispatching, setIsDispatching] = useState(false);
@@ -33,42 +41,31 @@ export default function EmergencyPage() {
   const [isLoadingAi, setIsLoadingAi] = useState(false);
   const [currentStreet, setCurrentStreet] = useState("Stationary at Hub");
 
-  const streets = [
-    "Leaving MG Road Hub",
-    "Passing Avinashi Road Junction",
-    "Crossing Brookefields Area",
-    "Near Gandhipuram Signal",
-    "Turning onto Race Course Road",
-    "Entering your immediate vicinity",
-    "Ambulance has Arrived"
-  ];
-
   // Simulated ambulance tracking
   useEffect(() => {
+    let interval: any;
     if (isDispatching && !hasArrived) {
-      const timer = setInterval(() => {
+      interval = setInterval(() => {
         setProgress(prev => {
-          const next = prev + 1;
+          const next = Math.min(prev + 1.5, 100);
           if (next >= 100) {
             setHasArrived(true);
             return 100;
           }
           return next;
         });
-
-        setEta(prev => {
-          const newEta = Math.max(0, 12 - Math.floor(progress / 8.33));
-          return newEta;
-        });
-
-        // Update street location based on progress
-        const streetIdx = Math.min(Math.floor((progress / 100) * streets.length), streets.length - 1);
-        setCurrentStreet(streets[streetIdx]);
-
-      }, 800); 
-      return () => clearInterval(timer);
+      }, 800);
     }
-  }, [isDispatching, progress, hasArrived, streets]);
+    return () => clearInterval(interval);
+  }, [isDispatching, hasArrived]);
+
+  useEffect(() => {
+    if (isDispatching && !hasArrived) {
+      const streetIdx = Math.min(Math.floor((progress / 100) * STREETS.length), STREETS.length - 1);
+      setCurrentStreet(STREETS[streetIdx]);
+      setEta(Math.max(0, 12 - Math.floor(progress / 8.33)));
+    }
+  }, [progress, isDispatching, hasArrived]);
 
   useEffect(() => {
     if (hasArrived) {
@@ -215,46 +212,6 @@ export default function EmergencyPage() {
               </div>
             </CardContent>
           </Card>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="glass border-primary/10">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <PhoneCall className="h-4 w-4 text-primary" />
-                  Direct Contact
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between items-center p-3 rounded-xl bg-background/50 border border-primary/5">
-                  <span className="text-sm">Paramedic Unit</span>
-                  <Button variant="link" className="text-primary text-xs font-bold">+91 999 444 000</Button>
-                </div>
-                <div className="flex justify-between items-center p-3 rounded-xl bg-background/50 border border-primary/5">
-                  <span className="text-sm">Police Assistance</span>
-                  <Button variant="link" className="text-primary text-xs font-bold">Dial 100</Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="glass border-primary/10">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-primary" />
-                  Nearest Trauma Centers
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between text-xs p-2 rounded-lg hover:bg-white/5 transition-colors">
-                  <span className="font-bold">KG Hospital</span>
-                  <Badge variant="outline" className="text-[10px] h-5 border-primary/20">0.8 KM</Badge>
-                </div>
-                <div className="flex items-center justify-between text-xs p-2 rounded-lg hover:bg-white/5 transition-colors">
-                  <span className="font-bold">KMCH (Avinashi Rd)</span>
-                  <Badge variant="outline" className="text-[10px] h-5 border-primary/20">3.1 KM</Badge>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </div>
 
         <div className="lg:col-span-5 space-y-8">
@@ -308,20 +265,6 @@ export default function EmergencyPage() {
                         </li>
                       ))}
                     </ul>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-accent/10 border border-accent/20">
-                    <p className="text-xs font-black text-accent uppercase mb-3 flex items-center gap-2">
-                      <AlertCircle className="h-3 w-3" />
-                      Critical Warning Signs:
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {aiResult.warningSigns.map((sign, i) => (
-                        <Badge key={i} variant="secondary" className="bg-accent/10 text-[10px] text-accent font-bold border-accent/20">
-                          {sign}
-                        </Badge>
-                      ))}
-                    </div>
                   </div>
                 </div>
               )}
