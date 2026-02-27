@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Conversational AI Health Assistant Flow.
@@ -34,19 +35,25 @@ const healthChatFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async input => {
+    // Construct messages for Gemini multi-turn conversation
     const messages = (input.history || []).map(m => ({
-      role: m.role,
+      role: m.role as 'user' | 'model',
       content: [{text: m.content}],
     }));
     
+    // Append the latest user message
     messages.push({
       role: 'user' as const,
       content: [{text: input.message}],
     });
 
     const response = await ai.generate({
-      system: 'You are the MediGold AI Health Assistant, an elite medical consultant for a premium telemedicine service. Your tone is sophisticated, reassuring, and professional. Provide helpful, concise medical information. ALWAYS include a brief medical disclaimer at the end of your response stating that you are an AI and not a replacement for professional medical advice.',
+      system: 'You are the MediGold AI Health Assistant, a sophisticated medical consultant. Your tone is professional and reassuring. Provide concise medical information. ALWAYS include a brief medical disclaimer at the end stating that you are an AI and not a replacement for professional medical advice.',
       messages: messages as any,
+      config: {
+        temperature: 0.7,
+        topP: 0.9,
+      }
     });
 
     return response.text;
