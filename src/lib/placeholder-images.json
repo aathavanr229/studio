@@ -23,6 +23,24 @@
       "description": "Specialist Doctor Portrait",
       "imageUrl": "https://images.unsplash.com/photo-1758691461513-88a0aef72160?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxkb2N0b3IlMjBzcGVjaWFsaXN0fGVufDB8fHx8MTc3MjA4ODU4OHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "doctor specialist"
+    },
+    {
+      "id": "hosp-cbe-1",
+      "description": "Modern Coimbatore Hospital exterior",
+      "imageUrl": "https://images.unsplash.com/photo-1722573783767-c0722585647d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxob3NwaXRhbCUyMGluZGlhfGVufDB8fHx8MTc3MjE4MDc3OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "hospital india"
+    },
+    {
+      "id": "hosp-cbe-2",
+      "description": "Coimbatore Medical Center facility",
+      "imageUrl": "https://images.unsplash.com/photo-1732376800645-c066f9e283e8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxtZWRpY2FsJTIwZmFjaWxpdHl8ZW58MHx8fHwxNzcyMTgwNzc4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "medical facility"
+    },
+    {
+      "id": "hosp-cbe-3",
+      "description": "Premium specialist clinic Coimbatore",
+      "imageUrl": "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxob3NwaXRhbCUyMGJ1aWxkaW5nfGVufDB8fHx8MTc3MjA5NjU5NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "hospital building"
     }
   ]
 }

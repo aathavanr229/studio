@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -27,6 +28,7 @@ export function Navbar() {
           <div className="hidden md:flex items-center gap-8">
             <Link href="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">Dashboard</Link>
             <Link href="/appointments" className="text-sm font-medium hover:text-primary transition-colors">Appointments</Link>
+            <Link href="/network" className="text-sm font-medium hover:text-primary transition-colors">Network</Link>
             <Link href="/symptom-checker" className="text-sm font-medium hover:text-primary transition-colors">AI Checker</Link>
             <Link href="/consultation" className="text-sm font-medium hover:text-primary transition-colors">Consult</Link>
           </div>
@@ -53,6 +55,7 @@ export function Navbar() {
         <div className="px-4 pt-4 pb-8 space-y-4">
           <Link href="/dashboard" className="block text-lg font-medium py-2">Dashboard</Link>
           <Link href="/appointments" className="block text-lg font-medium py-2">Appointments</Link>
+          <Link href="/network" className="block text-lg font-medium py-2">Network</Link>
           <Link href="/symptom-checker" className="block text-lg font-medium py-2">AI Checker</Link>
           <Link href="/auth" className="block">
             <Button className="w-full gold-gradient text-black font-semibold">Join Now</Button>

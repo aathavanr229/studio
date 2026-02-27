@@ -1,3 +1,4 @@
+
 {
   "placeholderImages": [
     {
@@ -23,6 +24,24 @@
       "description": "Specialist Doctor Portrait",
       "imageUrl": "https://picsum.photos/seed/doc3/400/400",
       "imageHint": "doctor specialist"
+    },
+    {
+      "id": "hosp-cbe-1",
+      "description": "Modern Coimbatore Hospital exterior",
+      "imageUrl": "https://picsum.photos/seed/cbe1/800/600",
+      "imageHint": "hospital india"
+    },
+    {
+      "id": "hosp-cbe-2",
+      "description": "Coimbatore Medical Center facility",
+      "imageUrl": "https://picsum.photos/seed/cbe2/800/600",
+      "imageHint": "medical facility"
+    },
+    {
+      "id": "hosp-cbe-3",
+      "description": "Premium specialist clinic Coimbatore",
+      "imageUrl": "https://picsum.photos/seed/cbe3/800/600",
+      "imageHint": "hospital building"
     }
   ]
 }
