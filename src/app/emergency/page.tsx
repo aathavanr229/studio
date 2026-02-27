@@ -62,20 +62,19 @@ export default function EmergencyPage() {
         });
 
         // Update street location based on progress
-        const streetIdx = Math.floor((progress / 100) * (streets.length - 1));
+        const streetIdx = Math.min(Math.floor((progress / 100) * streets.length), streets.length - 1);
         setCurrentStreet(streets[streetIdx]);
 
-      }, 800); // Accelerated simulation for demo
+      }, 800); 
       return () => clearInterval(timer);
     }
-  }, [isDispatching, progress, hasArrived]);
+  }, [isDispatching, progress, hasArrived, streets]);
 
   useEffect(() => {
     if (hasArrived) {
       toast({
         title: "AMBULANCE ARRIVED",
         description: "Unit #MG-402 is at your location now.",
-        variant: "default",
       });
     }
   }, [hasArrived]);
@@ -90,6 +89,23 @@ export default function EmergencyPage() {
       description: "Emergency services have been notified. Unit #MG-402 is en route.",
       variant: "destructive",
     });
+  };
+
+  const handleAiTriage = async () => {
+    if (!description.trim()) return;
+    setIsLoadingAi(true);
+    try {
+      const result = await analyzeEmergency({ description });
+      setAiResult(result);
+    } catch (error) {
+      toast({
+        title: "Analysis Failed",
+        description: "Could not reach medical AI. Please follow standard emergency protocols.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingAi(false);
+    }
   };
 
   return (
@@ -124,7 +140,6 @@ export default function EmergencyPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: Tracking & Status */}
         <div className="lg:col-span-7 space-y-8">
           <Card className={cn(
             "glass border-accent/20 overflow-hidden relative transition-all duration-500",
@@ -146,28 +161,27 @@ export default function EmergencyPage() {
               <CardDescription>GPS Satellite Link Active • Coimbatore Sector</CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
-              {/* Simulated Map / Route */}
               <div className="h-64 rounded-3xl bg-muted/30 border border-primary/10 relative overflow-hidden flex items-center justify-center group">
                  <div className="absolute inset-0 opacity-40 bg-[url('https://picsum.photos/seed/cbe-map/1200/800')] bg-cover grayscale group-hover:grayscale-0 transition-all duration-1000" />
                  <div className="relative z-10 text-center glass p-6 rounded-2xl border-white/10">
                     <div className="flex justify-center mb-4">
                       <div className="relative">
-                        {!hasArrived && (
+                        {!hasArrived && isDispatching && (
                           <div className="h-16 w-16 rounded-full bg-accent/20 flex items-center justify-center animate-ping absolute inset-0" />
                         )}
                         <div className={cn(
                           "h-16 w-16 rounded-full flex items-center justify-center relative transition-colors duration-500",
-                          hasArrived ? "bg-green-600" : "bg-accent"
+                          hasArrived ? "bg-green-600" : isDispatching ? "bg-accent" : "bg-muted"
                         )}>
                           {hasArrived ? <CheckCircle2 className="h-8 w-8 text-white" /> : <Truck className="h-8 w-8 text-white" />}
                         </div>
                       </div>
                     </div>
-                    <p className={cn("text-lg font-black uppercase tracking-tight", hasArrived ? "text-green-500" : "text-accent")}>
-                      {hasArrived ? "Ambulance Arrived" : "Ambulance En Route"}
+                    <p className={cn("text-lg font-black uppercase tracking-tight", hasArrived ? "text-green-500" : isDispatching ? "text-accent" : "text-muted-foreground")}>
+                      {hasArrived ? "Ambulance Arrived" : isDispatching ? "Ambulance En Route" : "Awaiting Dispatch"}
                     </p>
                     <p className="text-sm text-muted-foreground font-medium mt-1">
-                      {currentStreet}
+                      {isDispatching ? currentStreet : "Awaiting emergency signal"}
                     </p>
                  </div>
               </div>
@@ -178,15 +192,15 @@ export default function EmergencyPage() {
                     <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest">Estimated Arrival</p>
                     <p className={cn(
                       "text-5xl font-black transition-colors",
-                      hasArrived ? "text-green-500" : "text-accent"
+                      hasArrived ? "text-green-500" : isDispatching ? "text-accent" : "text-muted-foreground"
                     )}>
-                      {hasArrived ? "0" : eta} <span className="text-xl">MINS</span>
+                      {hasArrived ? "0" : isDispatching ? eta : "--"} <span className="text-xl">MINS</span>
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest">Current Distance</p>
                     <p className="text-2xl font-bold">
-                      {hasArrived ? "0.0" : (2.4 * (1 - progress/100)).toFixed(1)} KM
+                      {hasArrived ? "0.0" : isDispatching ? (2.4 * (1 - progress/100)).toFixed(1) : "--"} KM
                     </p>
                   </div>
                 </div>
@@ -243,7 +257,6 @@ export default function EmergencyPage() {
           </div>
         </div>
 
-        {/* Right Column: AI Triage */}
         <div className="lg:col-span-5 space-y-8">
           <Card className="glass border-primary/20 bg-primary/5">
             <CardHeader>
@@ -256,7 +269,7 @@ export default function EmergencyPage() {
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <textarea
-                  className="w-full h-32 rounded-xl bg-background/50 border border-primary/20 p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  className="w-full h-32 rounded-xl bg-background/50 border border-primary/20 p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-foreground"
                   placeholder="Describe the situation: e.g., Car accident, victim has leg injury, unconscious but breathing..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -312,30 +325,6 @@ export default function EmergencyPage() {
                   </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
-
-          <Card className="glass border-primary/10 overflow-hidden group">
-            <CardHeader className="bg-primary/5 border-b border-primary/10">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Activity className="h-5 w-5 text-primary" />
-                Victim Vitals
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4 mb-6">
-                 <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Activity className="h-6 w-6 text-primary animate-pulse" />
-                 </div>
-                 <div>
-                    <p className="text-sm font-bold">Ready to Connect</p>
-                    <p className="text-xs text-muted-foreground">Scanning for MediGold ID bands...</p>
-                 </div>
-              </div>
-              <Button variant="outline" className="w-full border-primary/20 hover:bg-primary/5 text-xs h-10 font-bold">
-                Manual Patient Entry
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
             </CardContent>
           </Card>
         </div>
