@@ -7,7 +7,8 @@ import {
   BrainCircuit, 
   Calendar, 
   ChevronRight,
-  Star
+  Star,
+  Bot
 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -16,7 +17,7 @@ export default function Home() {
   const heroImage = PlaceHolderImages.find(img => img.id === 'hero-medical');
 
   return (
-    <div className="flex flex-col gap-24 pb-24">
+    <div className="flex flex-col gap-24 pb-24 relative">
       {/* Hero Section */}
       <section className="relative h-[90vh] flex items-center overflow-hidden">
         <div className="absolute inset-0 z-0">
@@ -132,6 +133,22 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Floating Chatbot Icon */}
+      <div className="fixed bottom-8 right-8 z-50">
+        <Link href="/symptom-checker">
+          <Button 
+            size="icon" 
+            className="h-16 w-16 rounded-full gold-gradient text-black shadow-2xl gold-glow-hover animate-bounce hover:animate-none transition-all duration-300 border-2 border-primary/20"
+          >
+            <Bot className="h-8 w-8" />
+            <span className="sr-only">AI Symptom Checker</span>
+          </Button>
+        </Link>
+        <div className="absolute -top-12 right-0 glass px-4 py-2 rounded-2xl border border-primary/30 whitespace-nowrap animate-in fade-in slide-in-from-bottom-2 duration-700 hidden md:block">
+          <p className="text-xs font-bold text-primary">Need medical advice? Ask me!</p>
+        </div>
+      </div>
     </div>
   );
 }
