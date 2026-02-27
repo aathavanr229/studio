@@ -1,34 +1,39 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Star, Building2, Phone } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { MapPin, Star, Building2, Phone, Globe, ExternalLink } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import Link from "next/link";
 
 export default function NetworkPage() {
   const hospitals = PlaceHolderImages.filter(img => img.id.startsWith('hosp-cbe-'));
 
   const hospitalDetails = [
     {
-      name: "MediGold Central Coimbatore",
-      location: "Avinashi Road, Coimbatore",
-      specialty: "Multispecialty & Trauma",
-      rating: "4.9",
-      contact: "+91 422 123 4567"
-    },
-    {
-      name: "Gold Standard Cardiac Center",
-      location: "RS Puram, Coimbatore",
-      specialty: "Advanced Cardiology",
+      name: "KG Hospital & Post Graduate Institute",
+      location: "Arts College Road, Coimbatore",
+      specialty: "Multi-Speciality & Trauma Care",
       rating: "4.8",
-      contact: "+91 422 234 5678"
+      contact: "+91 422 221 2121",
+      website: "https://www.kghospital.com/"
     },
     {
-      name: "MediGold Wellness Clinic",
-      location: "Race Course, Coimbatore",
-      specialty: "Preventative Healthcare",
-      rating: "5.0",
-      contact: "+91 422 345 6789"
+      name: "GKNM Hospital",
+      location: "P.N. Palayam, Coimbatore",
+      specialty: "Advanced Cardiology & Women Care",
+      rating: "4.7",
+      contact: "+91 422 430 5000",
+      website: "https://www.gknmhospital.com/"
+    },
+    {
+      name: "KMCH (Kovai Medical Center)",
+      location: "Avinashi Road, Coimbatore",
+      specialty: "Multi-Disciplinary Tertiary Care",
+      rating: "4.9",
+      contact: "+91 422 432 3000",
+      website: "https://www.kmchhospitals.com/"
     }
   ];
 
@@ -37,14 +42,14 @@ export default function NetworkPage() {
       <div className="text-center mb-16 space-y-4">
         <h1 className="text-4xl md:text-6xl font-bold font-headline">Our <span className="gold-text">Premium Network</span></h1>
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          Explore our hand-picked network of elite medical facilities in Coimbatore, ensuring the highest standard of care.
+          Connect with the most prestigious medical institutions in Coimbatore, fully integrated with your MediGold account.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {hospitals.map((hosp, idx) => (
-          <Card key={idx} className="glass border-primary/10 overflow-hidden group hover:border-primary/40 transition-all duration-300">
-            <div className="relative h-64 w-full">
+          <Card key={idx} className="glass border-primary/10 overflow-hidden group hover:border-primary/40 transition-all duration-300 flex flex-col">
+            <div className="relative h-64 w-full shrink-0">
               <Image 
                 src={hosp.imageUrl} 
                 alt={hosp.description} 
@@ -57,9 +62,9 @@ export default function NetworkPage() {
               </div>
             </div>
             <CardHeader className="space-y-1">
-              <div className="flex justify-between items-start">
-                <CardTitle className="text-xl font-bold">{hospitalDetails[idx]?.name}</CardTitle>
-                <div className="flex items-center gap-1 text-primary">
+              <div className="flex justify-between items-start gap-2">
+                <CardTitle className="text-xl font-bold leading-tight">{hospitalDetails[idx]?.name}</CardTitle>
+                <div className="flex items-center gap-1 text-primary shrink-0">
                   <Star className="h-4 w-4 fill-primary" />
                   <span className="text-xs font-bold">{hospitalDetails[idx]?.rating}</span>
                 </div>
@@ -69,23 +74,52 @@ export default function NetworkPage() {
                 {hospitalDetails[idx]?.specialty}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4 text-primary" />
-                {hospitalDetails[idx]?.location}
+            <CardContent className="space-y-4 flex-grow">
+              <div className="space-y-3">
+                <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <MapPin className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                  <span>{hospitalDetails[idx]?.location}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Phone className="h-4 w-4 text-primary shrink-0" />
+                  <span>{hospitalDetails[idx]?.contact}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-primary group/link">
+                  <Globe className="h-4 w-4 shrink-0" />
+                  <Link 
+                    href={hospitalDetails[idx]?.website || "#"} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="hover:underline font-medium flex items-center gap-1"
+                  >
+                    Official Website
+                    <ExternalLink className="h-3 w-3" />
+                  </Link>
+                </div>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Phone className="h-4 w-4 text-primary" />
-                {hospitalDetails[idx]?.contact}
-              </div>
-              <div className="pt-4 border-t border-primary/5">
-                <p className="text-xs text-muted-foreground italic">
-                  Fully integrated with MediGold digital records and consultation systems.
-                </p>
+              
+              <div className="pt-6 mt-auto border-t border-primary/5">
+                <Button variant="outline" className="w-full border-primary/20 hover:border-primary hover:text-primary transition-all rounded-xl" asChild>
+                  <Link href={hospitalDetails[idx]?.website || "#"} target="_blank">
+                    View Facility Details
+                  </Link>
+                </Button>
               </div>
             </CardContent>
           </Card>
         ))}
+      </div>
+      
+      <div className="mt-20 glass p-8 rounded-3xl border-primary/20 text-center max-w-4xl mx-auto">
+        <h3 className="text-2xl font-bold mb-4">Direct Integration</h3>
+        <p className="text-muted-foreground mb-6">
+          All hospitals in our network share diagnostic results directly to your MediGold dashboard securely via 256-bit encryption. No more carrying paper files.
+        </p>
+        <div className="flex flex-wrap justify-center gap-4">
+          <Badge variant="outline" className="px-4 py-2 border-primary/20">Digital Records</Badge>
+          <Badge variant="outline" className="px-4 py-2 border-primary/20">Priority Booking</Badge>
+          <Badge variant="outline" className="px-4 py-2 border-primary/20">Direct Billing</Badge>
+        </div>
       </div>
     </div>
   );
