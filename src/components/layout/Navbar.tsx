@@ -1,9 +1,8 @@
-
 "use client";
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Stethoscope, User, Menu, X } from "lucide-react";
+import { Stethoscope, User, Menu, X, Siren } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -29,6 +28,10 @@ export function Navbar() {
             <Link href="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">Dashboard</Link>
             <Link href="/appointments" className="text-sm font-medium hover:text-primary transition-colors">Appointments</Link>
             <Link href="/network" className="text-sm font-medium hover:text-primary transition-colors">Network</Link>
+            <Link href="/emergency" className="text-sm font-bold text-accent hover:text-accent/80 transition-colors flex items-center gap-1">
+               <Siren className="h-4 w-4" />
+               Emergency
+            </Link>
             <Link href="/symptom-checker" className="text-sm font-medium hover:text-primary transition-colors">AI Checker</Link>
             <Link href="/consultation" className="text-sm font-medium hover:text-primary transition-colors">Consult</Link>
           </div>
@@ -56,6 +59,7 @@ export function Navbar() {
           <Link href="/dashboard" className="block text-lg font-medium py-2">Dashboard</Link>
           <Link href="/appointments" className="block text-lg font-medium py-2">Appointments</Link>
           <Link href="/network" className="block text-lg font-medium py-2">Network</Link>
+          <Link href="/emergency" className="block text-lg font-bold text-accent py-2">Emergency</Link>
           <Link href="/symptom-checker" className="block text-lg font-medium py-2">AI Checker</Link>
           <Link href="/auth" className="block">
             <Button className="w-full gold-gradient text-black font-semibold">Join Now</Button>
